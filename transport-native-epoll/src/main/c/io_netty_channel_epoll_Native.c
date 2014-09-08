@@ -55,6 +55,7 @@ jclass inetSocketAddressClass = NULL;
 jclass datagramSocketAddressClass = NULL;
 
 static int socketType;
+static const char *ip4prefix = "::ffff:";
 
 // util methods
 void throwRuntimeException(JNIEnv *env, char *message) {
@@ -138,9 +139,7 @@ jobject createInetSocketAddress(JNIEnv * env, struct sockaddr_storage addr) {
         struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
         port = ntohs(s->sin6_port);
         inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
-        if (ipstr[0] == ':' && ipstr[1] == ':' && (ipstr[2] == 'f' || ipstr[2] == 'F')
-            && (ipstr[3] == 'f' || ipstr[3] == 'F') && (ipstr[4] == 'f' || ipstr[4] == 'F')
-            && (ipstr[5] == 'f' || ipstr[5] == 'F') && ipstr[6] == ':') {
+        if (strncasecmp(ipstr, ip4prefix, 7) == 0) {
             // IPv4-mapped-on-IPv6.
             // Cut of ::ffff: prefix to workaround performance issues when parsing these
             // addresses in InetAddress.getByName(...).
@@ -168,9 +167,8 @@ jobject createDatagramSocketAddress(JNIEnv * env, struct sockaddr_storage addr, 
         struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
         port = ntohs(s->sin6_port);
         inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
-        if (ipstr[0] == ':' && ipstr[1] == ':' && (ipstr[2] == 'f' || ipstr[2] == 'F')
-            && (ipstr[3] == 'f' || ipstr[3] == 'F') && (ipstr[4] == 'f' || ipstr[4] == 'F')
-            && (ipstr[5] == 'f' || ipstr[5] == 'F') && ipstr[6] == ':') {
+
+        if (strncasecmp(ipstr, ip4prefix, 7) == 0) {
             // IPv4-mapped-on-IPv6.
             // Cut of ::ffff: prefix to workaround performance issues when parsing these
             // addresses in InetAddress.getByName(...).
